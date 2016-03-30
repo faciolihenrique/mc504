@@ -12,7 +12,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
-#include  <string.h>
+#include <string.h>
 
 #define N 6
 #define THREAD_EXECUTION 1
@@ -54,6 +54,7 @@ void update_thread_message(int thr_id, char message[]){
     strcat(thread_message, message);
 
     update_screen(thr_id, thread_message);
+    /* Pode colocar um print_to_a_file aqui */
     pthread_mutex_unlock(&imprimindo);
 }
 
@@ -111,10 +112,13 @@ int main() {
     pthread_t thr[N];
     int id[N], i;
 
-    printw("Seja B o local de inicio de todas as threads\n     F o local do fastlock\n     S o local do Slow Lock\n     C a região crítica, onde duas threads nunca podem estar juntas\n     E o final, onde tem a variavel compartilhada\n\n");
+    printw("\n\tB eh o local de inicio de todas as threads\n\tF eh o local do fastlock\n\tS eh o local do Slow Lock\n\tC eh a regiao critica, onde duas threads nunca podem\n   estar juntas\n\tE eh o final, onde tem a variavel compartilhada\n\tQuando a thread esta em 'O' ela esta interessada,\n   quando esta em 'o' nao tem interesse\n");
+    mvprintw( row-5, 0, "%s", "\tAPERTE ENTER PARA CONTINUAR");
     mvprintw(row/2 -3,(col-17)/2,"%s",upper);
     mvprintw(row/2 -2,(col-17)/2,"%s",up);
     mvprintw(row/2 +4,(col-17)/2,"%s",down);
+
+    getch();
 
     /* Inicializa as strings de cada uma das threads */
     for(i = 1; i < N; i++){
