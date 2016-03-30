@@ -16,8 +16,11 @@
 
 #define N 6
 #define THREAD_EXECUTION 1
+#define TIME 1
 
 typedef enum {False = 0, True = 1} Boolean;
+
+pthread_mutex_t imprimindo;
 
 volatile Boolean interesse[N] = {False,False,False,False,False};
 volatile int fast_lock = 0;
@@ -43,13 +46,15 @@ void update_screen(int thr_id, char thread_message[]){
 /* update_thread_message
  * Função que atualiza o o escrito de thread[i] para o nescessário
  */
-    void update_thread_message(int thr_id, char message[]){
+void update_thread_message(int thr_id, char message[]){
+    pthread_mutex_lock(&imprimindo);
     char thread_message[40];
 
     sprintf(thread_message, "Thread %d ", thr_id);
     strcat(thread_message, message);
 
     update_screen(thr_id, thread_message);
+    pthread_mutex_unlock(&imprimindo);
 }
 
 void* f_thread(void *v) {
@@ -61,13 +66,13 @@ void* f_thread(void *v) {
         getch();
         interesse[thr_id] = True;
         update_thread_message(thr_id, BEGIN_INTEREST);
-        getch();
+        getch();pthread_mutex_unlock(&imprimindo);
         fast_lock = thr_id;
         update_thread_message(thr_id, ON_FAST_INTEREST);
         getch();
         if(slow_lock != 0){
             interesse[thr_id] = False;
-            sleep(1);
+            getch();
             update_thread_message(thr_id, ON_FAST);
             while(slow_lock != 0);
             goto inicio;
