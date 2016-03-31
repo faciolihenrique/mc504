@@ -1,7 +1,7 @@
 CC = gcc
 CFLAGS = -g -pthread -lncurses
 
-PROGRAMS = fme fme_animation
+PROGRAMS = fme_animation
 
 all: $(PROGRAMS)
 
