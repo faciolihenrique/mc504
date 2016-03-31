@@ -1,5 +1,5 @@
 /* Algoritimo Fast Mutual Exclusion para 5 threads que executam 1 vezes cada
- * Guilherme Lucas da Silva -
+ * Guilherme Lucas da Silva - 155618
  * Henrique Noronha Facioli - 157988
  * Lauro Cruz e Souza       - 156175
  * Thiago Silva de Farias   - 148077

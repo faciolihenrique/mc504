@@ -1,0 +1,22 @@
+
+  Guilherme Lucas da Silva - 155618
+  Henrique Noronha Facioli - 157988
+  Lauro Cruz e Souza       - 156175
+  Thiago Silva de Farias   - 148077
+
+  Foi implementada uma animação do "Fast Mutual Exclusion" para 5 threads que executam 1 vezes cada.
+
+  Nossa animação consiste de uma tabela que representa o andamento das N threads ao decorrer do tempo.
+Nesta tabela, temos que:
+ - 'B' eh o local de inicio de todas as threads.
+ - 'F' eh o local do fastlock.
+ - 'S' eh o local do slowlock.
+ - 'C' eh a regiao critica, onde duas threads nunca podem testar juntas.
+ - 'E' eh o final, onde tem a variavel compartilhada.
+ - Quando a thread esta em 'O' ela esta interessada, quando esta em 'o' nao tem interesse.
+
+  A animação tem início quando o usuário pressiona alguma tecla.
+
+  Observações:
+   - A animação utiliza a biblioteca ncurses.h, que não faz parte das bibliotecas padrão da glibc.
+   - Essa animação foi testada somente em ambiente GNU/Linux.
