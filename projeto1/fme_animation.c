@@ -1,11 +1,11 @@
 /* Algoritimo Fast Mutual Exclusion para 5 threads que executam 1 vezes cada
- * Guilherme Lucas da Silva
- * Henrique Noronha Facioli
- * Lauro Cruz e Souza
- * Thiago Silva de Farias
+ * Guilherme Lucas da Silva -
+ * Henrique Noronha Facioli - 157988
+ * Lauro Cruz e Souza       - 156175
+ * Thiago Silva de Farias   - 148077
  */
 
-#include "fme.h"
+#include "fme_animation.h"
 
 #include <ncurses.h>
 #include <pthread.h>
@@ -31,35 +31,35 @@ void* f_thread(void *v) {
         inicio:
 
         update_thread_message(thr_id, BEGIN);
-        getch();
+        usleep(TIME);
 
         interesse[thr_id] = True;
 
         update_thread_message(thr_id, BEGIN_INTEREST);
-        getch();pthread_mutex_unlock(&imprimindo);
+        usleep(TIME);
 
         fast_lock = thr_id;
 
         update_thread_message(thr_id, ON_FAST_INTEREST);
-        getch();
+        usleep(TIME);
 
         if(slow_lock != 0){
             interesse[thr_id] = False;
-            getch();
             update_thread_message(thr_id, ON_FAST);
+
             while(slow_lock != 0);
             goto inicio;
         }
         slow_lock = thr_id;
 
         update_thread_message(thr_id, ON_SLOW_INTEREST);
-        getch();
+        usleep(TIME);
 
         if(fast_lock != thr_id){
             interesse[thr_id] = False;
 
             update_thread_message(thr_id, ON_SLOW);
-            getch();
+            usleep(TIME);
 
             for(int i = 1; i < N; i++){
                 while(interesse[i]);
@@ -72,12 +72,11 @@ void* f_thread(void *v) {
 
         /* ENTROU NA REGIAO CRTICA */
         update_thread_message(thr_id, CRITICAL_INTEREST);
-        getch();
+        usleep(TIME);
         slow_lock = 0;
         interesse[thr_id] = False;
         /* SAIU DA REGIAO CRITICA */
         update_thread_message(thr_id, THE_END);
-        getch();
     }
 
     return NULL;
@@ -96,7 +95,7 @@ int main() {
     mvprintw(row/2 -2,(col-17)/2,"%s",UP);
     mvprintw(row/2 +4,(col-17)/2,"%s",DOWN);
 
-    getch();
+    usleep(TIME);
 
     /* Inicializa as strings de cada uma das threads */
     for(i = 1; i < N; i++){
@@ -111,7 +110,7 @@ int main() {
     for (i = 0; i < N; i++){
         pthread_join(thr[i], NULL);
     }
-
+    getch();
     endwin();
 
     return 0;
