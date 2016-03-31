@@ -1,4 +1,4 @@
-/* Algoritimo Fast Mutual Exclusion para 5 threads que executam 2 vezes cada
+/* Algoritimo Fast Mutual Exclusion para 5 threads que executam 1 vezes cada
  * Guilherme Lucas da Silva
  * Henrique Noronha Facioli
  * Lauro Cruz e Souza
@@ -14,20 +14,111 @@
 #include <unistd.h>
 #include <string.h>
 
-#define N 6
-#define THREAD_EXECUTION 1
-#define TIME 1
+/* Variavez globais */
+int row, col;
+pthread_mutex_t imprimindo;     /* Mutex ajuda na impressao */
 
-typedef enum {False = 0, True = 1} Boolean;
-
-pthread_mutex_t imprimindo;
-
-volatile Boolean interesse[N] = {False,False,False,False,False};
+/* Variaveis compartilhadas pelas threads */
+volatile Boolean interesse[N] = {False,False,False,False};
 volatile int fast_lock = 0;
 volatile int slow_lock = 0;
 
-/* Funções para animações*/
-/* Função que imprime na tela a animação
+/* Uma thread qualquer*/
+void* f_thread(void *v) {
+    int thr_id = *(int*)v + 1;
+
+    for(int c = 0; c < THREAD_EXECUTION; c++){
+        inicio:
+
+        update_thread_message(thr_id, BEGIN);
+        getch();
+
+        interesse[thr_id] = True;
+
+        update_thread_message(thr_id, BEGIN_INTEREST);
+        getch();pthread_mutex_unlock(&imprimindo);
+
+        fast_lock = thr_id;
+
+        update_thread_message(thr_id, ON_FAST_INTEREST);
+        getch();
+
+        if(slow_lock != 0){
+            interesse[thr_id] = False;
+            getch();
+            update_thread_message(thr_id, ON_FAST);
+            while(slow_lock != 0);
+            goto inicio;
+        }
+        slow_lock = thr_id;
+
+        update_thread_message(thr_id, ON_SLOW_INTEREST);
+        getch();
+
+        if(fast_lock != thr_id){
+            interesse[thr_id] = False;
+
+            update_thread_message(thr_id, ON_SLOW);
+            getch();
+
+            for(int i = 1; i < N; i++){
+                while(interesse[i]);
+                if(slow_lock != thr_id){
+                    while(slow_lock != 0);
+                    goto inicio;
+                }
+            }
+        }
+
+        /* ENTROU NA REGIAO CRTICA */
+        update_thread_message(thr_id, CRITICAL_INTEREST);
+        getch();
+        slow_lock = 0;
+        interesse[thr_id] = False;
+        /* SAIU DA REGIAO CRITICA */
+        update_thread_message(thr_id, THE_END);
+        getch();
+    }
+
+    return NULL;
+}
+
+int main() {
+    pthread_t thr[N];
+    int id[N], i;
+
+    initscr();
+    getmaxyx(stdscr,row,col);
+
+    printw(HOWTO);
+    mvprintw( row-3, 0, "%s", "\tAPERTE ENTER PARA CONTINUAR");
+    mvprintw(row/2 -3,(col-17)/2,"%s",UPPER);
+    mvprintw(row/2 -2,(col-17)/2,"%s",UP);
+    mvprintw(row/2 +4,(col-17)/2,"%s",DOWN);
+
+    getch();
+
+    /* Inicializa as strings de cada uma das threads */
+    for(i = 1; i < N; i++){
+        update_thread_message(i, BEGIN);
+    }
+    /* Inicializa todas as threads */
+    for (i = 0; i < N; i++){
+        id[i] = i;
+        pthread_create(&thr[i], NULL, f_thread, &id[i]);
+    }
+    /* Faz esperar a execucao de todas as threads */
+    for (i = 0; i < N; i++){
+        pthread_join(thr[i], NULL);
+    }
+
+    endwin();
+
+    return 0;
+}
+
+/* Funcoes para animacoes*/
+/* Funcao que imprime na tela a animacao
  */
 void update_screen(int thr_id, char thread_message[]){
     if(thr_id == 1)
@@ -43,8 +134,9 @@ void update_screen(int thr_id, char thread_message[]){
     refresh();
     return;
 }
+
 /* update_thread_message
- * Função que atualiza o o escrito de thread[i] para o nescessário
+ * Funcao que atualiza o o escrito de thread[i] para o nescessario
  */
 void update_thread_message(int thr_id, char message[]){
     pthread_mutex_lock(&imprimindo);
@@ -54,87 +146,8 @@ void update_thread_message(int thr_id, char message[]){
     strcat(thread_message, message);
 
     update_screen(thr_id, thread_message);
-    /* Pode colocar um print_to_a_file aqui */
+    /* Pode colocar um print_to_a_file aqui caso queira que imprima passo
+     * a passo
+     */
     pthread_mutex_unlock(&imprimindo);
-}
-
-void* f_thread(void *v) {
-    int thr_id = *(int*)v + 1;
-
-    for(int c = 0; c < THREAD_EXECUTION; c++){
-        inicio:
-        update_thread_message(thr_id, BEGIN);
-        getch();
-        interesse[thr_id] = True;
-        update_thread_message(thr_id, BEGIN_INTEREST);
-        getch();pthread_mutex_unlock(&imprimindo);
-        fast_lock = thr_id;
-        update_thread_message(thr_id, ON_FAST_INTEREST);
-        getch();
-        if(slow_lock != 0){
-            interesse[thr_id] = False;
-            getch();
-            update_thread_message(thr_id, ON_FAST);
-            while(slow_lock != 0);
-            goto inicio;
-        }
-        slow_lock = thr_id;
-        update_thread_message(thr_id, ON_SLOW_INTEREST);
-        getch();
-        if(fast_lock != thr_id){
-            interesse[thr_id] = False;
-            update_thread_message(thr_id, ON_SLOW);
-            getch();
-            for(int i = 1; i < N; i++){
-                while(interesse[i]);
-                if(slow_lock != thr_id){
-                    while(slow_lock != 0);
-                    goto inicio;
-                }
-            }
-        }
-        /* REGIÃO CŔITICA */
-        update_thread_message(thr_id, CRITICAL_INTEREST);
-        getch();
-        slow_lock = 0;
-        update_thread_message(thr_id, THE_END);
-        getch();
-        interesse[thr_id] = False;
-    }
-
-    return NULL;
-}
-
-int main() {
-    initscr();
-    getmaxyx(stdscr,row,col);
-
-    pthread_t thr[N];
-    int id[N], i;
-
-    printw("\n\tB eh o local de inicio de todas as threads\n\tF eh o local do fastlock\n\tS eh o local do Slow Lock\n\tC eh a regiao critica, onde duas threads nunca podem\n   estar juntas\n\tE eh o final, onde tem a variavel compartilhada\n\tQuando a thread esta em 'O' ela esta interessada,\n   quando esta em 'o' nao tem interesse\n");
-    mvprintw( row-5, 0, "%s", "\tAPERTE ENTER PARA CONTINUAR");
-    mvprintw(row/2 -3,(col-17)/2,"%s",upper);
-    mvprintw(row/2 -2,(col-17)/2,"%s",up);
-    mvprintw(row/2 +4,(col-17)/2,"%s",down);
-
-    getch();
-
-    /* Inicializa as strings de cada uma das threads */
-    for(i = 1; i < N; i++){
-        update_thread_message(i, BEGIN);
-    }
-
-    for (i = 0; i < N; i++){
-        id[i] = i;
-        pthread_create(&thr[i], NULL, f_thread, &id[i]);
-    }
-    for (i = 0; i < N; i++)
-        pthread_join(thr[i], NULL);
-
-
-
-    endwin();
-
-    return 0;
 }
