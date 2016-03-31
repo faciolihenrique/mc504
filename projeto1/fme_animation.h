@@ -22,7 +22,7 @@ typedef enum {False = 0, True = 1} Boolean;
 /* Definições de constantes */
 #define N 6
 #define THREAD_EXECUTION 1      /* Num de vezes que cada thread eh executada*/
-#define TIME 500000             /* Para usar algum sleep() */
+#define TIME 700000             /* Para usar algum sleep() */
 
 
 /* Funcoes para animações*/

@@ -89,13 +89,14 @@ int main() {
     initscr();
     getmaxyx(stdscr,row,col);
 
-    printw(HOWTO);
-    mvprintw( row-3, 0, "%s", "\tAPERTE ENTER PARA CONTINUAR");
+    mvprintw(0, 0, HOWTO);
+
     mvprintw(row/2 -3,(col-17)/2,"%s",UPPER);
     mvprintw(row/2 -2,(col-17)/2,"%s",UP);
     mvprintw(row/2 +4,(col-17)/2,"%s",DOWN);
+    mvprintw(row/2, col/2- 11,"Aperte enter para continuar");
 
-    usleep(TIME);
+    getch();
 
     /* Inicializa as strings de cada uma das threads */
     for(i = 1; i < N; i++){
