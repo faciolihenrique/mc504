@@ -9,14 +9,14 @@ int main(){
     char option, str[101];
     int key, r;
 
-    printf("Programa para testar setkey e getkey\\n\\t-1)getkey\n\t2)setkey\\n");
+    printf("Programa para testar setkey e getkey\\n\\t1)setkey\\n\\t2)setkey\\n");
     scanf("%c",&option);
 
     if(option=='1'){
-        printf("Digite uma chave:\n");
-        scanf("%d\\n", &key);
-        printf("Digite uma string:\n");
-        fgets(str, 100, stdin);
+        printf("Digite uma chave:\\n");
+        scanf("%d", &key);
+        printf("Digite uma string:\\n");
+        scanf("%s",str);
         r = syscall(378, key, str);
         if(r){
             printf("Valor inserido com sucesso\\n");
@@ -24,8 +24,8 @@ int main(){
             printf("Valor não inserido. Erro: %d\\n", r);
         }
     }else if(option == '2'){
-        printf("Digite uma chave para procurar\n");
-        scanf("%d\\n", &key);
+        printf("Digite uma chave para procurar\\n");
+        scanf("%d", &key);
         r = syscall(379, key, str);
         if(r == 1){
             printf("A chave é: \\n%s", str);
