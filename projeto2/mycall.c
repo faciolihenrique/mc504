@@ -17,10 +17,17 @@ Chain *head = NULL;
 asmlinkage long sys_setkey(int key, char *ch){
     Chain *element, *search = head;
 
-    /*aloca o element na memoria */
+    /*aloca o elemento na memoria */
     element = (*Chain) kmalloc(sizeof(Chain));
+    /* Caso o kernel não tenha conseguido alocar alocado */
+    if(element == NULL){
+        return 0;
+    }
     element->key = key;
     element->cadeia = (*char) kmalloc(sizeof(char)*(strlen(ch) +1));
+    if(element->cadeia == NULL){
+        return 0;
+    }
     copy_from_user(ch, element->cadeia, sizeof(char)*(strlen(ch) +1));
     element->next = NULL;
 
@@ -30,8 +37,10 @@ asmlinkage long sys_setkey(int key, char *ch){
         return 1;
     }
 
-    /*Faz a busca do ultimo termo*/
-    while(search->next != NULL);
+    /*Faz a busca do ultimo termo ou do termo anterior ao que possui valor key*/
+    while(search->next != NULL){
+        search = search->next;
+    }
     search->next = element;
 
     return 1;
