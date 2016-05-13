@@ -9,7 +9,7 @@ int main(){
     char option, str[101];
     int key, r;
 
-    printf("Programa para testar setkey e getkey\\n\\t1)setkey\\n\\t2)setkey\\n");
+    printf("Programa para testar setkey e getkey\\n\\t1)setkey\\n\\t2)getkey\\n");
     scanf("%c",&option);
 
     if(option=='1'){
