@@ -2,6 +2,7 @@
 #include <linux/linkage.h>
 #include <linux/string.h>
 #include <linux/slab.h>
+#include <linux/uaccess.h>
 
 /*estrutura para guardar a key e o endereço na memoria que o usario inseriu, para posterior busca*/
 
@@ -18,13 +19,13 @@ asmlinkage long sys_setkey(int key, char *ch){
     Chain *element, *search = head;
 
     /*aloca o elemento na memoria */
-    element = (*Chain) kmalloc(sizeof(Chain));
+    element = (Chain *) kmalloc(sizeof(Chain), __GFP_REPEAT);
     /* Caso o kernel não tenha conseguido alocar alocado */
     if(element == NULL){
         return 0;
     }
     element->key = key;
-    element->cadeia = (*char) kmalloc(sizeof(char)*(strlen(ch) +1));
+    element->cadeia = (char *) kmalloc(sizeof(char)*(strlen(ch) +1), __GFP_REPEAT);
     if(element->cadeia == NULL){
         return 0;
     }
