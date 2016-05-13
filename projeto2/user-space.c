@@ -19,7 +19,7 @@ int main(){
         scanf("%s",str);
         r = syscall(378, key, str);
         if(r){
-            printf("Valor inserido com sucesso\\n");
+            printf("Elemento inserido:\\n - Chave %d com cadeia: %s\\n",key, str);
         }else{
             printf("Valor não inserido. Erro: %d\\n", r);
         }
@@ -28,7 +28,7 @@ int main(){
         scanf("%d", &key);
         r = syscall(379, key, str);
         if(r == 1){
-            printf("A chave é: \\n%s", str);
+            printf("Elemento encontrado:\\n - Chave %d com cadeia: %s\\n",key, str);
         }else{
             printf("Chave não encontrada\\n");
         }
