@@ -15,7 +15,7 @@ Chain *head = NULL;
 
 asmlinkage long sys_setkey(int key, char *ch){
     Chain *elemento, *percorre = head;
-   
+
     /*aloca o elemento na memoria */
     elemento = kmalloc(sizeof(Chain));
     elemento->key = key;
@@ -26,17 +26,19 @@ asmlinkage long sys_setkey(int key, char *ch){
     /*Caso seja o primeiro elemento*/
     if(head==NULL){
         head = elemento;
-        return 0;
+        return 1;
     }
 
     /*Faz a busca do ultimo termo*/
     while(percorre->prox != NULL);
     aux->prox = elemento;
+
+    return 1;
 }
 
 asmlinkage long sys_gettkey(int chave, char* ch){
     Chain *percorre = head;
-    
+
     /*vai procurando ate o final da lista ligada*/
     while (percorre != NULL) {
         /*copia o endereço do kernel, para o espaco usuario*/
@@ -49,5 +51,3 @@ asmlinkage long sys_gettkey(int chave, char* ch){
     }
     return 0;
 }
-
-
