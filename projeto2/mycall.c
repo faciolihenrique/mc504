@@ -29,7 +29,7 @@ asmlinkage long sys_setkey(int key, char *ch){
     if(element->cadeia == NULL){
         return 0;
     }
-    copy_from_user(ch, element->cadeia, sizeof(char)*(strlen(ch) +1));
+    copy_from_user(element->cadeia, ch , sizeof(char)*(strlen(ch) +1));
     element->next = NULL;
 
     /*Caso seja o primeiro element*/
@@ -54,7 +54,7 @@ asmlinkage long sys_getkey(int key, char* ch){
     while (search != NULL) {
         /*copia o endereço do kernel, para o espaco usuario*/
         if (search->key == key) {
-            copy_to_user(ch,search->cadeia,sizeof(char)*(strlen(search->cadeia) + 1));
+            copy_to_user(ch ,search->cadeia,sizeof(char)*(strlen(search->cadeia) + 1));
             return 1;
         }
         /*continua searchndo ate chegar no final da lista*/
