@@ -1,6 +1,7 @@
 #include <linux/unistd.h>
 #include <linux/linkage.h>
 #include <linux/string.h>
+#include <linux/slab.h>
 
 /*estrutura para guardar a key e o endereço na memoria que o usario inseriu, para posterior busca*/
 
@@ -17,9 +18,9 @@ asmlinkage long sys_setkey(int key, char *ch){
     Chain *element, *search = head;
 
     /*aloca o element na memoria */
-    element = kmalloc(sizeof(Chain));
+    element = (*Chain) kmalloc(sizeof(Chain));
     element->key = key;
-    element->cadeia = kmalloc(sizeof(char)*(strlen(ch) +1));
+    element->cadeia = (*char) kmalloc(sizeof(char)*(strlen(ch) +1));
     copy_from_user(ch, element->cadeia, sizeof(char)*(strlen(ch) +1));
     element->next = NULL;
 
@@ -31,7 +32,7 @@ asmlinkage long sys_setkey(int key, char *ch){
 
     /*Faz a busca do ultimo termo*/
     while(search->next != NULL);
-    aux->next = element;
+    search->next = element;
 
     return 1;
 }
