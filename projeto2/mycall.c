@@ -4,27 +4,26 @@
 #include <linux/slab.h>
 #include <linux/uaccess.h>
 
-/* Estrutura para guardar a key e o endereço na memoria que o usario inseriu, para posterior busca*/
-
+/* Lista ligada para guardar a key e o endereço */
 typedef struct Chain{
     struct Chain *next;
     char *str;
     int key;
 } Chain;
 
-/*cabeça da lista global, para poder ser acessada pela duas rotinas*/
+/* Cabeça da lista global, para poder ser acessada pela duas rotinas*/
 Chain *head = NULL;
 
 asmlinkage long sys_setkey(int key, char *ch){
     Chain *element, *search = head;
     int r;
 
-    /*aloca o elemento na memoria */
+    /* Aloca o elemento na memoria */
     element = (Chain *) kmalloc(sizeof(Chain), __GFP_REPEAT);
-    /* Caso o kernel não tenha conseguido alocar alocado */
     if(element == NULL){
         return 0;
     }
+    /* Insere key e ch no elemento criado */
     element->key = key;
     element->str = (char *) kmalloc(sizeof(char)*(strlen(ch) +1), __GFP_REPEAT);
     if(element->str == NULL){
@@ -36,13 +35,16 @@ asmlinkage long sys_setkey(int key, char *ch){
     }
     element->next = NULL;
 
-    /*Caso seja o primeiro element*/
+
+    /* Inserção do primeiro elemento */
     if(head==NULL){
         head = element;
         return 1;
     }
 
-    /*Faz a busca do ultimo termo ou do termo anterior ao que possui valor key*/
+    /* Faz a busca do ultimo termo ou do termo anterior ao que possui valor
+     * key
+     */
     while(search->next != NULL){
         search = search->next;
     }
