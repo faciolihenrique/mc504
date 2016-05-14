@@ -1,5 +1,8 @@
-Respondendo a questão feita no enunciado do laboratório, usamos a as funções copy_from_user e 
-copy_to_user pois armazenamos e recuperamos valores que não foram alocados no espaço do usuário
-e sim no espaço de endereço do Kernel. Para poder realizar tais operações, é necessário o privilégio
-de sistema, que essas rotinas tornam simples. Além disso, é bom lembrar que a função que nos permite
-realizar a alocação de espaço no kernel é a kmalloc.
+Respondendo a questão feita no enunciado do laboratório, usamos a as funções
+copy_from_user e copy_to_user pois armazenamos e recuperamos valores que não
+foram alocados no espaço do usuário e sim no espaço de endereço do Kernel. Como
+não é possível acessar o espaço do usuario atravez do kernel e nem o kernel
+atravez do usuário, essa funções permitem que seja passado de um para o outro as
+informações desejadas.
+Além disso, é bom lembrar que a função que nos permite realizar a alocação de
+espaço no kernel é a kmalloc.
