@@ -1,10 +1,10 @@
-##Grupo
+# Grupo
 Nome: Guilherme Lucas da Silva RA: 155618
 Nome: Henrique Noronha Facioli RA: 157986
 Nome: Thiago Silva de Farias   RA: 148077
 Nome: Lauro Cruz e Souza       RA: 156175
 
-##Requerimentos
+## Requerimentos
 gcc-multilib
 qemu
 
