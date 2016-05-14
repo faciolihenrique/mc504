@@ -5,15 +5,15 @@
  - Nome: Lauro Cruz e Souza       RA: 156175
 
 ## Requerimentos
-gcc-multilib
-qemu
+ - gcc-multilib
+ - qemu
 
 ## Rodar
 Execute:
-    ```
-    chmod +x execute.sh
-    ./execute
-    ```
+```
+chmod +x execute.sh
+./execute
+```
 siga as instruções que aparecerão no terminal
 
 
