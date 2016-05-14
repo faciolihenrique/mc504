@@ -18,8 +18,9 @@ int main(){
     if(option=='1'){
         printf("Digite uma chave:\n");
         scanf("%d", &key);
+        getchar();
         printf("Digite uma string:\n");
-        scanf("%s",str);
+        fgets(str, 100, stdin);
         r = syscall(378, key, str);
         if(r){
             printf("Elemento inserido:\n - Chave %d com cadeia: %s\n",key, str);
