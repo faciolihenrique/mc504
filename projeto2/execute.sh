@@ -37,11 +37,15 @@ yes | cp -rf linux/Makefile $directory/arch/x86/kernel/
 
 echo "Para compilar o kernel, execute:
   $ cd $directory
-  $ make -j 5 ARCH=i386
-  $ cd ..
-  $ qemu-system-i386 -hda mc504.img -kernel $directory/arch/i386/boot/bzImage -append 'ro root=/dev/hda' -hdb user-space"
+  $ make -j 5 ARCH=i386"
 
-gcc -m32 -static user-space.c -o user-space
+echo "
+Se quiser recompilar o programa de usuário:
+  $ gcc -m32 -static user-space.c -o user-space"
+
+echo "
+Para executar o qemu:
+  $ qemu-system-i386 -hda mc504.img -kernel $directory/arch/i386/boot/bzImage -append 'ro root=/dev/hda' -hdb user-space"
 
 echo "
 Para rodar o programa de usuário:
