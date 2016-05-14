@@ -6,6 +6,21 @@
 version=4.5.3
 directory=linux-$version
 
+if [ $# -lt 1 ]
+then
+    echo "
+    Modo de usar:
+        ./execute.sh parametro
+
+        parametro:
+        1 : compila o kernel, o arquivo do usuário, e executa
+        3 : compila o kernel e executa
+        3 : compila o arquivo do usuário e executa
+        4 : instruções de compilação
+    "
+    exit 1
+fi
+
 # Faz o download do arquivo de configuração do linux
 if [ ! -f "config-linux-$version" ]; then
     echo "Fazendo o download do arquivo de configuração"
@@ -35,21 +50,38 @@ yes | cp -rf linux/syscalls.h $directory/include/linux/
 yes | cp -rf mycall.c $directory/arch/x86/kernel/
 yes | cp -rf linux/Makefile $directory/arch/x86/kernel/
 
-echo "Para compilar o kernel, execute:
-  $ cd $directory
-  $ make -j 5 ARCH=i386"
+if [ $1 -eq 1 ]
+then
+    cd $directory
+    make -j 5 ARCH=i386
+    cd ..
+    gcc -m32 -static user-space.c -o user-space
+    qemu-system-i386 -hda mc504.img -kernel $directory/arch/i386/boot/bzImage -append 'ro root=/dev/hda' -hdb user-space
+elif [ $1 -eq 2 ]
+then
+    cd $directory
+    make -j 5 ARCH=i386
+    cd ..
+    qemu-system-i386 -hda mc504.img -kernel $directory/arch/i386/boot/bzImage -append 'ro root=/dev/hda' -hdb user-space
+elif [ $1 -eq 3 ]
+then
+    echo "Compilando codigo do usuário..."
+    gcc -m32 -static user-space.c -o user-space
+    qemu-system-i386 -hda mc504.img -kernel $directory/arch/i386/boot/bzImage -append 'ro root=/dev/hda' -hdb user-space
+else
+    echo "
+Para compilar o kernel, execute:
+    $ cd $directory
+    $ make -j 5 ARCH=i386
 
-echo "
 Se quiser recompilar o programa de usuário:
-  $ gcc -m32 -static user-space.c -o user-space"
-
-echo "
+    $ gcc -m32 -static user-space.c -o user-space
 Para executar o qemu:
-  $ qemu-system-i386 -hda mc504.img -kernel $directory/arch/i386/boot/bzImage -append 'ro root=/dev/hda' -hdb user-space"
+    $ qemu-system-i386 -hda mc504.img -kernel $directory/arch/i386/boot/bzImage -append 'ro root=/dev/hda' -hdb user-space
 
-echo "
 Para rodar o programa de usuário:
-  $ cat /dev/hdb > user-program
-  $ chmod +x user-program
-  $ ./user-program
+    $ cat /dev/hdb > user-program
+    $ chmod +x user-program
+    $ ./user-program
 "
+fi
