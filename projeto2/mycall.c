@@ -4,11 +4,11 @@
 #include <linux/slab.h>
 #include <linux/uaccess.h>
 
-/*estrutura para guardar a key e o endereço na memoria que o usario inseriu, para posterior busca*/
+/* Estrutura para guardar a key e o endereço na memoria que o usario inseriu, para posterior busca*/
 
 typedef struct Chain{
     struct Chain *next;
-    char *cadeia;
+    char *str;
     int key;
 } Chain;
 
@@ -25,11 +25,11 @@ asmlinkage long sys_setkey(int key, char *ch){
         return 0;
     }
     element->key = key;
-    element->cadeia = (char *) kmalloc(sizeof(char)*(strlen(ch) +1), __GFP_REPEAT);
-    if(element->cadeia == NULL){
+    element->str = (char *) kmalloc(sizeof(char)*(strlen(ch) +1), __GFP_REPEAT);
+    if(element->str == NULL){
         return 0;
     }
-    copy_from_user(element->cadeia, ch , sizeof(char)*(strlen(ch) +1));
+    copy_from_user(element->str, ch , sizeof(char)*(strlen(ch) +1));
     element->next = NULL;
 
     /*Caso seja o primeiro element*/
@@ -54,7 +54,7 @@ asmlinkage long sys_getkey(int key, char* ch){
     while (search != NULL) {
         /*copia o endereço do kernel, para o espaco usuario*/
         if (search->key == key) {
-            copy_to_user(ch ,search->cadeia,sizeof(char)*(strlen(search->cadeia) + 1));
+            copy_to_user(ch ,search->str,sizeof(char)*(strlen(search->str) + 1));
             return 1;
         }
         /*continua searchndo ate chegar no final da lista*/
