@@ -6,21 +6,6 @@
 version=4.5.3
 directory=linux-$version
 
-if [ $# -lt 1 ]
-then
-    echo "
-    Modo de usar:
-        ./execute.sh parametro
-
-        parametro:
-        1 : compila o kernel, o arquivo do usuário, e executa
-        3 : compila o kernel e executa
-        3 : compila o arquivo do usuário e executa
-        4 : instruções de compilação
-    "
-    exit 1
-fi
-
 # Faz o download do arquivo de configuração do linux
 if [ ! -f "config-linux-$version" ]; then
     echo "Fazendo o download do arquivo de configuração"
@@ -49,6 +34,21 @@ yes | cp -rf linux/syscall_32.tbl $directory/arch/x86/entry/syscalls/
 yes | cp -rf linux/syscalls.h $directory/include/linux/
 yes | cp -rf mycall.c $directory/arch/x86/kernel/
 yes | cp -rf linux/Makefile $directory/arch/x86/kernel/
+
+if [ $# -lt 1 ]
+then
+    echo "
+Modo de usar:
+    ./execute.sh parametro
+
+    parametro:
+    1 : compila o kernel, o arquivo do usuário, e executa
+    3 : compila o kernel e executa
+    3 : compila o arquivo do usuário e executa
+    4 : instruções de compilação
+    "
+    exit 1
+fi
 
 if [ $1 -eq 1 ]
 then
