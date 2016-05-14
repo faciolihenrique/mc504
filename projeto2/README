@@ -1,3 +1,9 @@
+Grupo
+Nome: Guilherme Lucas da Silva RA: 155618
+Nome: Henrique Noronha Facioli RA: 157986
+Nome: Thiago Silva de Farias   RA: 148077
+Nome: Lauro Cruz e Souza       RA: 156175
+
 Respondendo a questão feita no enunciado do laboratório, usamos a as funções copy_from_user e 
 copy_to_user pois armazenamos e recuperamos valores que não foram alocados no espaço do usuário
 e sim no espaço de endereço do Kernel. Para poder realizar tais operações, é necessário o privilégio
