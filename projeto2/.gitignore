@@ -1,2 +1,5 @@
 *.o
 linux-4.5.3/
+mc504.img
+*.tar.xz
+config-linux-4.5.3
