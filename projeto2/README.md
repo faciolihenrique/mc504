@@ -4,6 +4,12 @@
  - Nome: Thiago Silva de Farias   RA: 148077
  - Nome: Lauro Cruz e Souza       RA: 156175
 
+## Projeto 2
+Este projeto consiste em criar duas chamadas de sistema (syscall's) no kernel do
+linux. Foram criadas duas chamadas, a getkey e a setkey.
+ - setkey(key, chain) : Essa chamada recebe um inteiro e uma cadeia de caracteres e a armazena em uma estrutura de dados dentro do Kernel. retorna 0 se não conseguiu alocar, e 1 se sim.
+ - getkey(key, chain) : essa chama recebe um inteiro e um ponteiro de caracteres, procurando na estrutura armazenada no kernel o inteiro key, se encontrar faz o apontador apontar para a cadeia. retorna 0 se não encontrou, e 0 se encontrou.
+
 ## Requerimentos
  - gcc-multilib
  - qemu
