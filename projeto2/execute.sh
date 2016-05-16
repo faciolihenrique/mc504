@@ -1,6 +1,6 @@
 #! /bin/bash
 # Henrique
-# v0.1
+# v0.8
 
 
 version=4.5.3
@@ -52,6 +52,7 @@ fi
 
 if [ $1 -eq 1 ]
 then
+    export CCACHE_DIR="/tmp/.ccache"
     cd $directory
     make -j 5 ARCH=i386
     cd ..
@@ -59,6 +60,7 @@ then
     qemu-system-i386 -hda mc504.img -kernel $directory/arch/i386/boot/bzImage -append 'ro root=/dev/hda' -hdb user-space
 elif [ $1 -eq 2 ]
 then
+    export CCACHE_DIR="/tmp/.ccache"
     cd $directory
     make -j 5 ARCH=i386
     cd ..
