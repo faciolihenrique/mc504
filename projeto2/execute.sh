@@ -8,7 +8,7 @@ directory=linux-$version
 
 # Faz o download do arquivo de configuração do linux
 if [ ! -f "config-linux-$version" ]; then
-    echo "Fazendo o download do arquivo de configuração"
+    echo "Fazendo o download do arquivo de configuração..."
     wget -nc http://www.ic.unicamp.br/~islene/1s2016-mc504/system-call/config-linux-4.5.3
 fi
 # Faz download da imagem
@@ -18,13 +18,13 @@ if [ ! -f "mc504.img" ]; then
 fi
 # Faz download do kernel
 if [ ! -f "linux-$version.tar.xz" ]; then
-echo "Fazendo download do kernel..."
-wget -nc https://cdn.kernel.org/pub/linux/kernel/v4.x/linux-$version.tar.xz
+    echo "Fazendo download do kernel..."
+    wget -nc https://cdn.kernel.org/pub/linux/kernel/v4.x/linux-$version.tar.xz
 fi
 
 # Extrai o kernel
 if [ ! -d "$directory" ]; then
-    echo "Extraindo"
+    echo "Extraindo o kernel..."
     tar xJf linux-$version.tar.xz
 fi
 
@@ -57,19 +57,19 @@ then
     make -j 5 ARCH=i386
     cd ..
     gcc -m32 -static user-space.c -o user-space
-    qemu-system-i386 -hda mc504.img -kernel $directory/arch/i386/boot/bzImage -append 'ro root=/dev/hda' -hdb user-space
+    (qemu-system-i386 -hda mc504.img -kernel $directory/arch/i386/boot/bzImage -append 'ro root=/dev/hda' -hdb user-space &)
 elif [ $1 -eq 2 ]
 then
     export CCACHE_DIR="/tmp/.ccache"
     cd $directory
     make -j 5 ARCH=i386
     cd ..
-    qemu-system-i386 -hda mc504.img -kernel $directory/arch/i386/boot/bzImage -append 'ro root=/dev/hda' -hdb user-space
+    (qemu-system-i386 -hda mc504.img -kernel $directory/arch/i386/boot/bzImage -append 'ro root=/dev/hda' -hdb user-space &)
 elif [ $1 -eq 3 ]
 then
     echo "Compilando codigo do usuário..."
     gcc -m32 -static user-space.c -o user-space
-    qemu-system-i386 -hda mc504.img -kernel $directory/arch/i386/boot/bzImage -append 'ro root=/dev/hda' -hdb user-space
+    (qemu-system-i386 -hda mc504.img -kernel $directory/arch/i386/boot/bzImage -append 'ro root=/dev/hda' -hdb user-space &)
 else
     echo "
 Para compilar o kernel, execute:
@@ -80,10 +80,14 @@ Se quiser recompilar o programa de usuário:
     $ gcc -m32 -static user-space.c -o user-space
 Para executar o qemu:
     $ qemu-system-i386 -hda mc504.img -kernel $directory/arch/i386/boot/bzImage -append 'ro root=/dev/hda' -hdb user-space
+"
+fi
 
-Para rodar o programa de usuário:
+echo "
+
+Para rodar o programa de usuário no qemu:
     $ cat /dev/hdb > user-program
     $ chmod +x user-program
     $ ./user-program
+
 "
-fi
