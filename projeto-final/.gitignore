@@ -9,7 +9,7 @@
 #
 # Normal rules
 #
-
+mnt/
 image
 *.gch
 .*
