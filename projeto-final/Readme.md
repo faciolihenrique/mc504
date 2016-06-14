@@ -5,6 +5,7 @@ Baseado -até agora- em hellofs.
 ## Como testar?
 primeiramente rode o make
     make
+
 #### Inserindo o modulo no kernel
     sudo insmod vsfs.ko
 
@@ -20,4 +21,4 @@ Crie um diretório para montar o fs
 Monte o sistema de arquivos:
     sudo mount -t vsfs -o loop image ./mnt
 
-Desmonte o sistema com sudo umount ./mnt e remova o módulo do kernel
+Desmonte o sistema com `sudo umount ./mnt` , remova o módulo do kernel e rode `make clean`
