@@ -18,11 +18,18 @@ static ssize_t vsfs_read_file(struct file *filp, char *buf,
 static ssize_t vsfs_write_file(struct file *filp, const char *buff,
                                             size_t len, loff_t *off);
 
+/*
+ * Diretorios
+ */
+ static int vsfs_create_file(struct inode *dir, struct dentry * dentry,
+ 			    umode_t mode, bool excl);
+ static int vsfs_create_dir(struct inode *dir, struct dentry * dentry,
+ 			    umode_t mode);
 
 /*
  * Superblocks
  */
-static void vsfs_put_super(struct super_block *sb);
+//static void vsfs_put_super(struct super_block *sb);
 static int vsfs_fill_super (struct super_block *sb, void *data, int silent);
 static struct dentry *vsfs_mount(struct file_system_type *fst,
 					     int flags, const char *devname, void *data);
