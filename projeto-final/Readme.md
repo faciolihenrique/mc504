@@ -29,3 +29,20 @@ Desmonte o sistema com `sudo umount ./mnt` , remova o módulo do kernel e rode `
 
 ## Erros
 Alguns erros são facilmente corrigidos com um reboot.
+
+
+#### Referencias
+
+1. https://ext4.wiki.kernel.org/index.php/Ext4_Disk_Layout
+2. https://www.win.tue.nl/~aeb/linux/lk/lk-8.html
+3. https://github.com/psankar/simplefs/commits/master?page=3
+4. http://kukuruku.co/hub/nix/writing-a-file-system-in-linux-kernel
+5. http://www.tldp.org/LDP/khg/HyperNews/get/fs/vfstour.html
+6. https://accelazh.github.io/filesystem/Writing-a-Kernel-Filesystem
+7. http://www.makelinux.net/ldd3/chp-3-sect-3
+8. https://www.cs.uic.edu/~jbell/CourseNotes/OperatingSystems/11_FileSystemImplementation.html
+9. https://lwn.net/Articles/57369/
+
+e principalmente
+
+10. http://lxr.free-electrons.com/ident?i=.
