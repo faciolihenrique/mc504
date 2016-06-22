@@ -23,10 +23,52 @@
 /* Licença do modulo */
 MODULE_LICENSE("GPL");
 
-
 #define VSFS_MAGIC 0x19496CF8
-//#define PAGE_SIZE 1024
-//#define PAGE_SHIFT 10
+
+Vsfs_Skeleton Skeleton;
+// Essa é a estrutura que gerencia nosso armazenamento //
+
+struct vsfs_data* find_data(struct inode *inode){
+    struct vsfs_data *aux;
+
+    aux = Skeleton.head;
+    //misto quente
+    while(aux != NULL){
+        if(aux->inode == inode){
+            return aux;
+        }
+        aux = aux->next;
+    }
+
+    printk("VSFS: Não encontrado dado\n");
+    return NULL;
+}
+
+void insert_data(struct vsfs_data *data){
+    struct vsfs_data *aux;
+
+    printk("VSFS: Adicionando dado\n");
+
+    if(data == NULL){
+        printk("VSFS: Erro insert data TOTAL\n");
+        return;
+    }
+
+    aux = find_data(data->inode);
+
+    if(aux != NULL){
+        printk("Inode já existente\n");
+    }else{
+        aux = Skeleton.head;
+        if(aux == NULL){
+            aux = data;
+        }else{
+            data->next = aux->next;
+            aux->next = data;
+        }
+        (Skeleton.n_of_files++);
+    }
+}
 
 /* File operations definitions */
 static struct file_operations vsfs_file_ops = {
@@ -34,16 +76,9 @@ static struct file_operations vsfs_file_ops = {
     .read       = vsfs_read_file,
     .write      = vsfs_write_file,
 };
-
-/* vsfs[]
- * Essa é a estrutura que está armazenando os arquivos por enquanto!
- */
-struct tree_descr vsfs[] = {
-    { NULL, NULL, 0 },
-    { "hello.txt", &vsfs_file_ops, S_IWUSR|S_IRUGO },
-    { "", NULL, 0},
+static const struct inode_operations vsfs_inode_ops = {
+	.getattr    = simple_getattr,
 };
-
 
 /* filesystem information */
 static struct file_system_type vsfs_type = {
@@ -66,12 +101,14 @@ static struct file_system_type vsfs_type = {
  */
 static int __init vsfs_init(void)
 {
-    int reg = register_filesystem(&vsfs_type);
+    int reg;
+    Skeleton.n_of_files=1;
+    reg = register_filesystem(&vsfs_type);
 
-    if (likely(reg == 0))
-        printk(KERN_INFO "VSFS: carregado no kernel\n", reg);
+    if (reg == 0 && Skeleton.n_of_files)
+        printk("VSFS: carregado no kernel\n");
     else
-        printk(KERN_ERR "VSFS: [Erro] não carregado. REG:%d \n", reg);
+        printk("VSFS: [Erro] não carregado. REG:%d \n", reg);
 
     return reg;
 }
@@ -81,9 +118,9 @@ static void __exit vsfs_exit(void)
     int unreg = unregister_filesystem(&vsfs_type);
 
     if ( likely(unreg == 0))
-        printk(KERN_INFO "VSFS liberado do kernel\n");
+        printk("VSFS: liberado do kernel\n");
     else
-        printk(KERN_ERR "[Erro] VSFS não liberado. UNREG:%d", unreg);
+        printk("VSFS: [Erro] VSFS não liberado. UNREG:%d", unreg);
 }
 
 
@@ -95,8 +132,10 @@ static void __exit vsfs_exit(void)
  */
 static int vsfs_open(struct inode *inode, struct file *filp)
 {
-     printk ("VSFS: [OPEN] Operação não implementada.\n");
-     return 0;
+    printk ("VSFS: [OPEN] Você abriu um arquivo.\n");
+      if (inode->i_private)
+          filp->private_data = inode->i_private;
+      return 0;
 }
 
 /* leitura de arquivo
@@ -132,7 +171,42 @@ static ssize_t vsfs_write_file(struct file *filp, const char *buff,
 static int vsfs_create_file(struct inode *dir, struct dentry * dentry,
 			    umode_t mode, bool excl)
 {
-    printk ("VSFS: [CREATE_FILE] Operação não implementada.\n");
+    struct inode *inode;
+    struct vsfs_data *file = kmalloc(sizeof(*file), GFP_KERNEL);
+    struct page *page;
+
+    if(!file){
+        printk("VSFS: [CREATE_FILE] Erro na operação.\n");
+        return -EAGAIN;
+    }
+
+    inode = new_inode(dir->i_sb);
+    if (!inode)
+        return -ENOMEM;
+
+    inode->i_mode = mode | S_IFREG;
+    inode->i_uid = current->cred->fsuid;
+    inode->i_gid = current->cred->fsgid;
+    inode->i_blocks = 0;
+    inode->i_atime = inode->i_mtime = inode->i_ctime = CURRENT_TIME;
+    inode->i_ino = (Skeleton.n_of_files + 1);
+
+    inode->i_op = &vsfs_inode_ops;
+    inode->i_fop = &vsfs_file_ops;
+
+    file->inode = inode;
+    page = alloc_page(GFP_KERNEL);
+    if(!page){
+        iput(inode);
+        kfree(file);
+        return -EINVAL;
+    }
+
+    file->infos = page_address(page);
+    insert_data(file);
+    d_instantiate(dentry, inode);
+    dget(dentry);
+
     return 0;
 }
 
@@ -157,54 +231,49 @@ static struct super_operations const vsfs_super_ops = {
  */
 static int vsfs_fill_super (struct super_block *sb, void *data, int silent)
 {
-    //return simple_fill_super(sb, VSFS_MAGIC, vsfs);
-
     // Essa é a implementação de simple_fill_super que está em fs/libfs.c
     // Foi modificada apenas para receber a função vsfs_super_ops
-    struct inode *inode;
-    struct dentry *root;
-    //struct dentry *dentry;
-
+    struct inode *root;
+    struct dentry *root_dentry;
     struct user_namespace *ns = current_user_ns();
+
+    sb->s_magic = VSFS_MAGIC;
 
     sb->s_blocksize = PAGE_SIZE;
     sb->s_blocksize_bits = PAGE_SHIFT;
-    sb->s_magic = VSFS_MAGIC;
+    sb->s_maxbytes = 4096;
+
     sb->s_op = &vsfs_super_ops;
     sb->s_time_gran = 1;
 
-    inode = new_inode(sb);
-    if (!inode)
+    root = new_inode(sb);
+    if (!root)
         return -ENOMEM;
-    /*
-     * because the root inode is 1, the files array must not contain an
-     * entry at index 1
-     */
-    inode->i_ino = 1;
-    inode->i_mode = S_IFDIR | S_IRUGO | S_IXUGO | S_IWUSR;
-    inode->i_atime = inode->i_mtime = inode->i_ctime = CURRENT_TIME;
 
-    inode->i_op = &vsfs_dir_inode_ops;
-    inode->i_fop = &simple_dir_operations;
+    root->i_ino = 1;
+    root->i_mode = S_IFDIR | 0755;
+    root->i_atime = root->i_mtime = root->i_ctime = CURRENT_TIME;
+    root->i_blocks = 0;
+    root->i_uid = make_kuid(ns, 0);
+    root->i_gid = make_kgid(ns, 0);
 
-    inode->i_uid = make_kuid(ns, 0);
-    inode->i_gid = make_kgid(ns, 0);
-    set_nlink(inode, 2);
+    root->i_op = &vsfs_dir_inode_ops;
+    root->i_fop = &simple_dir_operations;
 
-    root = d_make_root(inode);
-    if (!root){
-        iput(inode);
+    set_nlink(root, 2);
+    /* Qual a diferença ente d_make_root e d_alloc_root:?*/
+    root_dentry = d_make_root(root);
+
+    if (!root_dentry){
+        d_genocide(root_dentry);
+        shrink_dcache_parent(root_dentry);
+        dput(root_dentry);
         return -ENOMEM;
     }
 
-    sb->s_root = root;
+    sb->s_root = root_dentry;
+
     return 0;
-/*
-out:
-    d_genocide(root);
-    shrink_dcache_parent(root);
-    dput(root);
-*/
 }
 
 /* Para registrar um superbloco do filesystem
@@ -216,17 +285,19 @@ static struct dentry *vsfs_mount(struct file_system_type *fst,
     struct dentry *mount = mount_bdev(fst, flags, devname, data,
                                                     vsfs_fill_super);
 
+
+    // Fazer uma lista
     if ( IS_ERR(mount) )
-        printk(KERN_ERR "VSFS:[Erro] Não foi possível montar VSFS");
+        printk("VSFS:[Erro] Não foi possível montar VSFS");
     else
-        printk(KERN_INFO "VSFS: montado em %s\n", devname);
+        printk("VSFS: montado em %s\n", devname);
 
     return mount;
 }
 
 static void vsfs_umount(struct super_block *sb)
 {
-	printk(KERN_INFO "VSFS: desmontado\n");
+	printk("VSFS: desmontado\n");
 	/* This is just a dummy function as of now. As our filesystem gets matured,
 	 * we will do more meaningful operations here */
 	return kill_litter_super(sb);

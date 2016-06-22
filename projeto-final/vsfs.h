@@ -1,9 +1,39 @@
 #include <linux/init.h>
 #include <linux/module.h>
-#include <linux/kernel.h>
-#include <linux/fs.h>
-#include <asm/uaccess.h>
+#include <linux/fs.h>           // Bibliotecas fs
+#include <linux/module.h>
+#include <linux/vfs.h>
+#include <linux/types.h>
+#include <linux/sched.h>
+#include <linux/mm.h>
+#include <linux/errno.h>
+#include <linux/slab.h>
 
+#include <asm/current.h>
+#include <asm/uaccess.h>        // Função copy_to_user
+
+#define SIZE_OF_HEAD_VECTOR 64
+
+/** Nosso Sistema de arquivos **/
+typedef struct vsfs_data{
+    struct vsfs_data *next;
+    struct inode *inode;
+    void *infos;
+}Vsfs_Data;
+
+/* Pensei em fazer um hash - ao invez de ter uma unica cabeça, teriamos um vetor de cabeça :)*/
+typedef struct vsfs_skeleton{
+    struct vsfs_data* head;
+    int n_of_files;
+}Vsfs_Skeleton;
+
+/* Funções para gerenciar a estrutura */
+int espalha(int k){
+    return (k%SIZE_OF_HEAD_VECTOR);
+}
+struct vsfs_data* find_data(struct inode *inode);
+void insert_data(struct vsfs_data *data);
+void remove_data(struct vsfs_data *data);
 
 /*
  * Operações em arquivos
