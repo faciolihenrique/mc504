@@ -1,6 +1,6 @@
 # VSFS
 Um sistema de arquivo MUITO simples.
-Baseado -até agora- em hellofs.
+Implementado somente as operações de criar um arquivo, ler arquivo e gravar arquivo.
 
 ## Como testar?
 ### Requerimentos
@@ -20,8 +20,10 @@ primeiramente rode o make
 Carregue o módulo no kernel.
 Crie um arquivo vazio
     touch image
+
 Crie um diretório para montar o fs
     mkdir mnt
+    
 Monte o sistema de arquivos:
     sudo mount -t vsfs -o loop image ./mnt
 
