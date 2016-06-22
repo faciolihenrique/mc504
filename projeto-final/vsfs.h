@@ -16,14 +16,14 @@
 
 /** Nosso Sistema de arquivos **/
 typedef struct vsfs_data{
-    struct vsfs_data *next;
     struct inode *inode;
     void *infos;
+    struct vsfs_data *next;
 }Vsfs_Data;
 
 /* Pensei em fazer um hash - ao invez de ter uma unica cabeça, teriamos um vetor de cabeça :)*/
 typedef struct vsfs_skeleton{
-    struct vsfs_data* head;
+    struct vsfs_data* head[SIZE_OF_HEAD_VECTOR];
     int n_of_files;
 }Vsfs_Skeleton;
 
@@ -31,14 +31,14 @@ typedef struct vsfs_skeleton{
 int espalha(int k){
     return (k%SIZE_OF_HEAD_VECTOR);
 }
-struct vsfs_data* find_data(struct inode *inode);
-void insert_data(struct vsfs_data *data);
-void remove_data(struct vsfs_data *data);
+struct vsfs_data* find_data(struct inode *inode, Vsfs_Skeleton *Skeleton);
+void insert_data(struct vsfs_data *data, Vsfs_Skeleton *Skeleton);
+void remove_data(struct vsfs_data *data, Vsfs_Skeleton *Skeleton);
+
 
 /*
  * Operações em arquivos
  */
-
 /* abertura de um arquivo */
 static int vsfs_open(struct inode *inode, struct file *filp);
 /* leitura de arquivo  */

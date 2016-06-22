@@ -18,6 +18,9 @@
 #include <asm/current.h>
 #include <asm/uaccess.h>        // Função copy_to_user
 
+//#include "data_operations.h"
+//#include "data_operations.c"
+
 #include "vsfs.h"
 
 /* Licença do modulo */
@@ -26,49 +29,58 @@ MODULE_LICENSE("GPL");
 #define VSFS_MAGIC 0x19496CF8
 
 Vsfs_Skeleton Skeleton;
-// Essa é a estrutura que gerencia nosso armazenamento //
 
-struct vsfs_data* find_data(struct inode *inode){
+
+
+struct vsfs_data* find_data(struct inode *inode, Vsfs_Skeleton *Skeleton){
     struct vsfs_data *aux;
+    int position = inode->i_ino;
 
-    aux = Skeleton.head;
+    printk("VSFS: [find_data] Fazendo a busca. Inode nb = %d\n", position);
+
+    aux = Skeleton->head[espalha(position)];
     //misto quente
     while(aux != NULL){
-        if(aux->inode == inode){
+        if(aux->inode->i_ino == inode->i_ino){
+            printk("VSFS: [find_data] Encontrou arquivo desejado\n");
             return aux;
         }
         aux = aux->next;
     }
 
-    printk("VSFS: Não encontrado dado\n");
+    printk("VSFS: [find_data] Não encontrou o arquivo\n");
+
     return NULL;
 }
 
-void insert_data(struct vsfs_data *data){
+void insert_data(struct vsfs_data *data, Vsfs_Skeleton *Skeleton){
     struct vsfs_data *aux;
+    int position = data->inode->i_ino;
 
-    printk("VSFS: Adicionando dado\n");
+    printk("VSFS: [insert_data] Adicionando nova estrutura\n");
 
     if(data == NULL){
-        printk("VSFS: Erro insert data TOTAL\n");
+        printk("VSFS: [insert_data] Erro insert\n");
         return;
     }
 
-    aux = find_data(data->inode);
+    aux = find_data(data->inode, Skeleton);
 
     if(aux != NULL){
-        printk("Inode já existente\n");
+        printk("VSFS: [insert_data] Inode já existente\n");
     }else{
-        aux = Skeleton.head;
+        printk("VSFS: [insert_data] Inserindo inode nb = %d", position);
+        aux = Skeleton->head[espalha(position)];
         if(aux == NULL){
-            aux = data;
+            Skeleton->head[espalha(position)] = data;
         }else{
             data->next = aux->next;
             aux->next = data;
         }
-        (Skeleton.n_of_files++);
+        (Skeleton->n_of_files++);
     }
 }
+
 
 /* File operations definitions */
 static struct file_operations vsfs_file_ops = {
@@ -87,22 +99,21 @@ static struct file_system_type vsfs_type = {
     .mount          = vsfs_mount,
     .kill_sb        = vsfs_umount,
 };
-/* vsfs_init(void) - a 'main()'
- * Função de inicialização do módulo
- * Como é um filesystem deve chamar a função:
- *      int register_filesystem(&fs_type);
- * com o argumento:
- *      static struct file_system_type fs_type = {
- *          .owner 	    = THIS_MODULE,
- *          .name	    = "lwnfs",
- *          .get_sb	    = lfs_get_super,
- *	        .kill_sb	= kill_litter_super,
- *      };
- */
+
+
+/* Inicialização */
+
 static int __init vsfs_init(void)
 {
-    int reg;
+    int reg, i;
+
+    /* Inicialização do Skeleton */
+    for(i = 0; i < SIZE_OF_HEAD_VECTOR; i++){
+        Skeleton.head[i] = NULL;
+    }
     Skeleton.n_of_files=1;
+
+
     reg = register_filesystem(&vsfs_type);
 
     if (reg == 0 && Skeleton.n_of_files)
@@ -123,7 +134,6 @@ static void __exit vsfs_exit(void)
         printk("VSFS: [Erro] VSFS não liberado. UNREG:%d", unreg);
 }
 
-
 /*
  * As operações em arquivos
  */
@@ -133,30 +143,79 @@ static void __exit vsfs_exit(void)
 static int vsfs_open(struct inode *inode, struct file *filp)
 {
     printk ("VSFS: [OPEN] Você abriu um arquivo.\n");
-      if (inode->i_private)
-          filp->private_data = inode->i_private;
-      return 0;
+    if (inode->i_private)
+        filp->private_data = inode->i_private;
+    return 0;
 }
 
 /* leitura de arquivo
  * cat arquivo
  */
-static ssize_t vsfs_read_file(struct file *filp, char *buf,
+static ssize_t vsfs_read_file(struct file *filp, char *buff,
                                 size_t count, loff_t *offset)
 {
-    printk ("VSFS: [READ] Operação não implementada.\n");
-    return -EINVAL;
+    Vsfs_Data *vsfs_file;
+    int size_of_buffer = count;
+
+    printk ("VSFS: [READ] Operação de leitura sendo feita.\n");
+
+    /* Faz a busca do arquivo que deseja retornar */
+    vsfs_file = find_data(filp->f_path.dentry->d_inode, &Skeleton);
+    if( vsfs_file == NULL){
+        return -EIO;
+    }
+    /* Operações para análise da area de dados */
+    if (vsfs_file->inode->i_size < count)
+		size_of_buffer = vsfs_file->inode->i_size;
+
+	if ((*offset + size_of_buffer) >= vsfs_file->inode->i_size)
+		size_of_buffer = vsfs_file->inode->i_size - *offset;
+
+    /* Envia para o usuário o buffer */
+    if (copy_to_user(buff, vsfs_file->infos + *offset, size_of_buffer))
+    		return -EFAULT;
+
+    *offset = *offset + size_of_buffer; // Renvia para o usuário onde paramos o envio
+
+    return size_of_buffer;
 }
 
-/*escrever um arquivo
- *
- */
+/* Escrever um arquivo */
 static ssize_t vsfs_write_file(struct file *filp, const char *buff,
-                                            size_t len, loff_t *off)
+    size_t len, loff_t *offset)
 {
-    printk ("VSFS: [WRITE] Operação não implementada.\n");
-    return -EINVAL;
+
+    Vsfs_Data *vsfs_file;
+
+    printk ("VSFS: [WRITE] Escrita sendo feita. Inode nb = %d.\n", filp->f_path.dentry->d_inode->i_ino);
+
+    /* Primeiro procura o arquivo no FS*/
+    vsfs_file = find_data(filp->f_path.dentry->d_inode, &Skeleton);
+
+    if (vsfs_file == NULL){
+        printk("VSFS: [WRITE] Arquivo não encontrado.\n");
+        return -ENOENT;
+    }
+
+    printk("VSFS: [WRITE] Arquivo encontrado.\n");
+
+    /* copy_from_user() : veja comentario na funcao de leitura */
+    if ( copy_from_user(vsfs_file->infos + *offset, buff, len) ){
+        printk("VSFS: [WRITE] Não foi possível copiar do usuario.\n");
+        return -EFAULT;
+    }
+
+    vsfs_file->inode->i_size = len;
+    vsfs_file->inode->i_mtime = CURRENT_TIME;
+
+    return len;
 }
+
+int vsfs_unlink_file(struct inode *inode,struct dentry *dentry){
+    printk("VSFS: [UNLINK] Erro na operação.\n");
+    return 0;
+}
+
 
 
 /*
@@ -166,6 +225,7 @@ static ssize_t vsfs_write_file(struct file *filp, const char *buff,
      .lookup        = simple_lookup,
      .create        = vsfs_create_file,
      .mkdir         = vsfs_create_dir,
+     .unlink        = vsfs_unlink_file,
  };
 
 static int vsfs_create_file(struct inode *dir, struct dentry * dentry,
@@ -180,11 +240,12 @@ static int vsfs_create_file(struct inode *dir, struct dentry * dentry,
         return -EAGAIN;
     }
 
+
     inode = new_inode(dir->i_sb);
     if (!inode)
         return -ENOMEM;
 
-    inode->i_mode = mode | S_IFREG;
+    inode->i_mode = (mode | S_IFREG | 0644);
     inode->i_uid = current->cred->fsuid;
     inode->i_gid = current->cred->fsgid;
     inode->i_blocks = 0;
@@ -194,17 +255,22 @@ static int vsfs_create_file(struct inode *dir, struct dentry * dentry,
     inode->i_op = &vsfs_inode_ops;
     inode->i_fop = &vsfs_file_ops;
 
+
     file->inode = inode;
     page = alloc_page(GFP_KERNEL);
     if(!page){
+        printk("VSFS: [CREATE] Erro na alocação de página \n.");
         iput(inode);
         kfree(file);
         return -EINVAL;
     }
 
     file->infos = page_address(page);
-    insert_data(file);
+    insert_data(file, &Skeleton);
     d_instantiate(dentry, inode);
+
+    dentry->d_inode = inode;
+
     dget(dentry);
 
     return 0;
@@ -214,8 +280,13 @@ static int vsfs_create_dir(struct inode *dir, struct dentry * dentry,
 			    umode_t mode)
 {
     printk ("VSFS: [MKDIR] Operação não implementada.\n");
+
+    //struct inode *inode;
+
+
     return 0;
 }
+
 
 
 /*
