@@ -1,0 +1,15 @@
+Apresentação:
+
+VFS:
+É uma camada de abstração do sistema operacional para poder lidar com vários tipos de arquivos
+Atualmente o linux suporta por padrão mais de 50 filesystems por padrão sendo possível suportar quantos quiser.
+Alguns padrões: ext3, ext4, minix, ntfs, vfat
+
+Como Funciona:
+Existem "classes" já definidas que são herdadas pelo filesystem implementado para que o linux chame sempre as mesmas funções que são implementadas diferentemente por cada um dos filesystem.
+
+[http://www.tldp.org/LDP/tlk/fs/vfs.gif]
+
+Então as aplicações não chamam o filesystem, mas sim o vsf atravez de chamadas de sistema como open() write() mkdir()
+
+Existem 

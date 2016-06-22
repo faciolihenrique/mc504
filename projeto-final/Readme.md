@@ -46,3 +46,4 @@ Alguns erros são facilmente corrigidos com um reboot.
 e principalmente
 
 10. http://lxr.free-electrons.com/ident?i=.
+11. http://www.makelinux.net/ldd3/chp-11-sect-5
